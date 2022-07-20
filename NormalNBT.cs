@@ -24,6 +24,7 @@ public abstract class NBT
 {
     public TagId   Id   { get; protected set; }
     public string? Name { get; protected set; }
+    public abstract object Value { get; set; }
     
     /// <summary>
     /// Get child tag, only if NBT is compound
@@ -79,27 +80,27 @@ public abstract class NBT
                 case TagId.ByteArray:
                 {
                     var arrLen = BigEndianReader.ReadInt(readFunc);
-                    var array  = new byte[arrLen];
+                    var array  = new List<byte>(arrLen);
                     for (var i = 0; i < arrLen; i++) {
-                        array[i] = readFunc();
+                        array.Add(readFunc());
                     }
                     return new NBTbyteArr(name, array);
                 }
                 case TagId.IntArray:
                 {
                     var arrLen = BigEndianReader.ReadInt(readFunc);
-                    var array  = new int[arrLen];
+                    var array  = new List<int>(arrLen);
                     for (var i = 0; i < arrLen; i++) {
-                        array[i] = BigEndianReader.ReadInt(readFunc);
+                        array.Add(BigEndianReader.ReadInt(readFunc));
                     }
                     return new NBTintArr(name, array);
                 }
                 case TagId.LongArray:
                 {
                     var arrLen = BigEndianReader.ReadInt(readFunc);
-                    var array  = new long[arrLen];
+                    var array  = new List<long>(arrLen);
                     for (var i = 0; i < arrLen; i++) {
-                        array[i] = BigEndianReader.ReadLong(readFunc);
+                        array.Add(BigEndianReader.ReadLong(readFunc));
                     }
                     return new NBTlongArr(name, array);
                 }
@@ -172,46 +173,46 @@ public abstract class NBT
             switch (nbttag.Id)
             {
                 case TagId.Byte:
-                    BigEndianWriter.WriteSByte(writeFunc, ((NBTbyte)nbttag).Value);
+                    BigEndianWriter.WriteSByte(writeFunc, ((NBTbyte)nbttag).Data);
                     break;
                 case TagId.Short:
-                    BigEndianWriter.WriteShort(writeFunc, ((NBTshort)nbttag).Value);
+                    BigEndianWriter.WriteShort(writeFunc, ((NBTshort)nbttag).Data);
                     break;
                 case TagId.Int:
-                    BigEndianWriter.WriteInt(writeFunc, ((NBTint)nbttag).Value);
+                    BigEndianWriter.WriteInt(writeFunc, ((NBTint)nbttag).Data);
                     break;
                 case TagId.Long:
-                    BigEndianWriter.WriteLong(writeFunc, ((NBTlong)nbttag).Value);
+                    BigEndianWriter.WriteLong(writeFunc, ((NBTlong)nbttag).Data);
                     break;
                 case TagId.Float:
-                    BigEndianWriter.WriteFloat(writeFunc, ((NBTfloat)nbttag).Value);
+                    BigEndianWriter.WriteFloat(writeFunc, ((NBTfloat)nbttag).Data);
                     break;
                 case TagId.Double:
-                    BigEndianWriter.WriteDouble(writeFunc, ((NBTdouble)nbttag).Value);
+                    BigEndianWriter.WriteDouble(writeFunc, ((NBTdouble)nbttag).Data);
                     break;
                 case TagId.String:
-                    WriteStr(((NBTstring)nbttag).Value);
+                    WriteStr(((NBTstring)nbttag).Data);
                     break;
                 case TagId.ByteArray:
-                    BigEndianWriter.WriteInt(writeFunc, ((NBTbyteArr)nbttag).Value.Length);
-                    foreach (var b in ((NBTbyteArr)nbttag).Value) {
+                    BigEndianWriter.WriteInt(writeFunc, ((NBTbyteArr)nbttag).Data.Count);
+                    foreach (var b in ((NBTbyteArr)nbttag).Data) {
                         writeFunc(b);
                     }
                     break;
                 case TagId.IntArray:
-                    BigEndianWriter.WriteInt(writeFunc, ((NBTintArr)nbttag).Value.Length);
-                    foreach (var i in ((NBTintArr)nbttag).Value) {
+                    BigEndianWriter.WriteInt(writeFunc, ((NBTintArr)nbttag).Data.Count);
+                    foreach (var i in ((NBTintArr)nbttag).Data) {
                         BigEndianWriter.WriteInt(writeFunc, i);
                     }
                     break;
                 case TagId.LongArray:
-                    BigEndianWriter.WriteInt(writeFunc, ((NBTlongArr)nbttag).Value.Length);
-                    foreach (var l in ((NBTlongArr)nbttag).Value) {
+                    BigEndianWriter.WriteInt(writeFunc, ((NBTlongArr)nbttag).Data.Count);
+                    foreach (var l in ((NBTlongArr)nbttag).Data) {
                         BigEndianWriter.WriteLong(writeFunc, l);
                     }
                     break;
                 case TagId.List:
-                    var list = ((NBTlist)nbttag).Value;
+                    var list = ((NBTlist)nbttag).Data;
                     if (list.Count == 0)
                     {
                         // if no items, type = 1
@@ -229,7 +230,7 @@ public abstract class NBT
                     }
                     break;
                 case TagId.Compound:
-                    var dict = ((NBTcompound)nbttag).Value;
+                    var dict = ((NBTcompound)nbttag).Data;
                     foreach (var nbt in dict.Values)
                     {
                         if (nbt.Name == null)
@@ -261,97 +262,137 @@ public abstract class NBT
 
 public class NBTbyte : NBT
 {
-    public sbyte Value;
+    public sbyte Data;
+
+    public override object Value 
+    { 
+        get => Data; 
+        set => Data = (sbyte)value; 
+    }
 
     public NBTbyte(string? name, sbyte value)
     {
         Name  = name;
-        Value = value;
+        Data = value;
         Id    = TagId.Byte;
     }
     public NBTbyte(sbyte value): this(null, value)
     { }
     
-    public override string ToString() => $"{Name} <byte>: {Value}";
+    public override string ToString() => $"{Name} <byte>: {Data}";
 }
 public class NBTshort : NBT
 {
-    public short Value;
+    public short Data;
+
+    public override object Value
+    {
+        get => Data;
+        set => Data = (short)value;
+    }
 
     public NBTshort(string? name, short value)
     {
         Name  = name;
-        Value = value;
+        Data = value;
         Id    = TagId.Short;
     }
     public NBTshort(short value): this(null, value)
     { }
 
-    public override string ToString() => $"{Name} <short>: {Value}";
+    public override string ToString() => $"{Name} <short>: {Data}";
 }
 public class NBTint : NBT
 {
-    public int Value;
+    public int Data;
+
+    public override object Value
+    {
+        get => Data;
+        set => Data = (int)value;
+    }
 
     public NBTint(string? name, int value)
     {
         Name  = name;
-        Value = value;
+        Data = value;
         Id    = TagId.Int;
     }
     public NBTint(int value): this(null, value)
     { }
     
-    public override string ToString() => $"{Name} <int>: {Value}";
+    public override string ToString() => $"{Name} <int>: {Data}";
 }
 public class NBTlong : NBT
 {
-    public long Value;
+    public long Data;
+
+    public override object Value
+    {
+        get => Data;
+        set => Data = (long)value;
+    }
 
     public NBTlong(string? name, long value)
     {
         Name  = name;
-        Value = value;
+        Data = value;
         Id    = TagId.Long;
     }
     public NBTlong(long value): this(null, value)
     { }
     
-    public override string ToString() => $"{Name} <long>: {Value}";
+    public override string ToString() => $"{Name} <long>: {Data}";
 }
 public class NBTfloat : NBT
 {
-    public float Value;
+    public float Data;
 
+    public override object Value
+    {
+        get => Data;
+        set => Data = (float)value;
+    }
     public NBTfloat(string? name, float value)
     {
         Name  = name;
-        Value = value;
+        Data = value;
         Id    = TagId.Float;
     }
     public NBTfloat(float value): this(null, value)
     { }
     
-    public override string ToString() => $"{Name} <float>: {Value}";
+    public override string ToString() => $"{Name} <float>: {Data}";
 }
 public class NBTdouble : NBT
 {
-    public double Value;
+    public double Data;
 
+    public override object Value
+    {
+        get => Data;
+        set => Data = (double)value;
+    }
     public NBTdouble(string? name, double value)
     {
         Name  = name;
-        Value = value;
+        Data = value;
         Id    = TagId.Double;
     }
     public NBTdouble(double value): this(null, value)
     { }
     
-    public override string ToString() => $"{Name} <double>: {Value}";
+    public override string ToString() => $"{Name} <double>: {Data}";
 }
 public class NBTcompound : NBT
 {
-    public Dictionary<string, NBT> Value = new();
+    public Dictionary<string, NBT> Data = new();
+
+    public override object Value
+    {
+        get => Data;
+        set => Data = (Dictionary<string, NBT>)value;
+    }
 
     public NBTcompound(string? name, IEnumerable<NBT> children)
     {
@@ -361,90 +402,120 @@ public class NBTcompound : NBT
         {
             if (child.Name == null)
                 throw new Exception("All tags in compound must be named");
-            Value.Add(child.Name, child);
+            Data.Add(child.Name, child);
         }
     }
     public NBTcompound(IEnumerable<NBT> children) : this(null, children)
     { }
     
-    public override NBT this[string name] => Value[name];
+    public override NBT this[string name] => Data[name];
     
-    public override string ToString() => $"{Name} <compound>: {{\n{string.Join(",\n", Value.Values)}\n}}";
+    public override string ToString() => $"{Name} <compound>: {{\n{string.Join(",\n", Data.Values)}\n}}";
 }
 public class NBTbyteArr : NBT
 {
-    public byte[] Value;
+    public List<byte> Data;
 
-    public NBTbyteArr(string? name, byte[] value)
+    public override object Value
+    {
+        get => Data;
+        set => Data = (List<byte>)value;
+    }
+
+    public NBTbyteArr(string? name, List<byte> value)
     {
         Name  = name;
-        Value = value;
+        Data = value;
         Id    = TagId.ByteArray;
     }
-    public NBTbyteArr(byte[] value): this(null, value)
+    public NBTbyteArr(List<byte> value): this(null, value)
     { }
     
-    public override string ToString() => $"{Name} <byte[]>: [{string.Join(", ", Value)}]";
+    public override string ToString() => $"{Name} <byte[]>: [{string.Join(", ", Data)}]";
 }
 public class NBTintArr : NBT
 {
-    public int[] Value;
+    public List<int> Data;
 
-    public NBTintArr(string? name, int[] value)
+    public override object Value
     {
-        Name  = name;
-        Value = value;
-        Id    = TagId.IntArray;
+        get => Data;
+        set => Data = (List<int>)value;
     }
-    public NBTintArr(int[] value): this(null, value)
+
+    public NBTintArr(string? name, List<int> value)
+    {
+        Name = name;
+        Data = value;
+        Id   = TagId.IntArray;
+    }
+    public NBTintArr(List<int> value): this(null, value)
     { }
     
-    public override string ToString() => $"{Name} <int[]>: [{string.Join(", ", Value)}]";
+    public override string ToString() => $"{Name} <int[]>: [{string.Join(", ", Data)}]";
 }
 public class NBTlongArr : NBT
 {
-    public long[] Value;
+    public List<long> Data;
 
-    public NBTlongArr(string? name, long[] value)
+    public override object Value
     {
-        Name  = name;
-        Value = value;
-        Id    = TagId.LongArray;
+        get => Data;
+        set => Data = (List<long>)value;
     }
-    public NBTlongArr(long[] value): this(null, value)
+
+    public NBTlongArr(string? name, List<long> value)
+    {
+        Name = name;
+        Data = value;
+        Id   = TagId.LongArray;
+    }
+    public NBTlongArr(List<long> value): this(null, value)
     { }
     
-    public override string ToString() => $"{Name} <long[]>: [{string.Join(", ", Value)}]";
+    public override string ToString() => $"{Name} <long[]>: [{string.Join(", ", Data)}]";
 }
 public class NBTstring : NBT
 {
-    public string Value;
+    public string Data;
+
+    public override object Value
+    {
+        get => Data;
+        set => Data = (string)value;
+    }
 
     public NBTstring(string? name, string value)
     {
         Name  = name;
-        Value = value;
+        Data = value;
         Id    = TagId.String;
     }
     public NBTstring(string value): this(null, value)
     { }
     
-    public override string ToString() => $"{Name} <string>: '{Value}'";
+    public override string ToString() => $"{Name} <string>: '{Data}'";
 }
 public class NBTlist : NBT
 {
-    public List<NBT> Value;
+    public List<NBT> Data;
+
+    public override object Value
+    {
+        get => Data;
+        set => Data = (List<NBT>)value;
+    }
 
     public NBTlist(string? name, IEnumerable<NBT> children)
     {
         Id    = TagId.List;
         Name  = name;
-        Value = children.ToList();
+        Data = children.ToList();
     }
     public NBTlist(IEnumerable<NBT> children) : this(null, children)
     { }
     
-    public override NBT this[int index] => Value[index];
+    public override NBT this[int index] => Data[index];
     
-    public override string ToString() => $"{Name} <list>: [{string.Join(", ", Value)}]";
+    public override string ToString() => $"{Name} <list>: [{string.Join(", ", Data)}]";
 }

@@ -5,6 +5,16 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
         <LangVersion>10</LangVersion>
+        <PackageLicenseExpression>MIT</PackageLicenseExpression>
+        <Copyright>ciyoxe</Copyright>
+        <Authors>Ciyoxe</Authors>
+        <Version>0.0.2</Version>
+        <PackageVersion>0.0.2</PackageVersion>
+        <RepositoryUrl>https://github.com/ciyoxe/NormalNBT</RepositoryUrl>
+        <PackageTags>NBT, Minecraft</PackageTags>
+        <PackageId>NormalNBT</PackageId>
+        <Description>Small NBT library for C#</Description>
+        <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
     </PropertyGroup>
 
 </Project>
